@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Private Screen Share</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-test {
+            background: #f59e0b;
+            color: white;
+            padding: 8px 15px;
+            font-size: 0.8rem;
+            width: auto;
+            margin-top: 10px;
+        }
+
+        .input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 3px;
+            margin-bottom: 15px;
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .code-display {
+            background: #ecfdf5;
+            border: 2px solid #10b981;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .code-display .label {
+            font-size: 0.9rem;
+            color: #059669;
+            margin-bottom: 5px;
+        }
+
+        .code-display .code {
+            font-size: 2rem;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #065f46;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: #059669;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .copy-btn:hover {
+            background: #d1fae5;
+        }
+
+        .status {
+            background: #ecfdf5;
+            border: 2px solid #10b981;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            color: #065f46;
+            font-weight: 600;
+        }
+
+        .video-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .video-container h4 {
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .video {
+            width: 100%;
+            max-height: 500px;
+            border-radius: 10px;
+            background: #f3f4f6;
+        }
+
+        .activity-log {
+            background: #f9fafb;
+            border-radius: 10px;
+            padding: 15px;
+            height: 150px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+
+        .log-success { color: #059669; }
+        .log-error { color: #dc2626; }
+        .log-info { color: #6b7280; }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .modal-icon {
+            width: 60px;
+            height: 60px;
+            background: #dbeafe;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 1.5rem;
+        }
+
+        .modal h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+        }
+
+        .modal p {
+            color: #6b7280;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .steps {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .steps ol {
+            margin-left: 20px;
+        }
+
+        .steps li {
+            margin-bottom: 5px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn-modal {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-cancel {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-allow {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .hidden { display: none; }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            color: #92400e;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            border: 2px solid #3b82f6;
+            color: #1e40af;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            border: 2px solid #ef4444;
+            color: #991b1b;
+        }
+
+        .troubleshooting ul {
+            margin-left: 20px;
+            margin-top: 5px;
+        }
+
+        .troubleshooting li {
+            margin-bottom: 3px;
+        }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                <span class="icon">🖥️</span>
+                Private Screen Share
+            </h1>
+            <p>Share your screen securely with your brother</p>
+        </div>
+
+        <!-- HTTPS Warning -->
+        <div id="httpsWarning" class="alert alert-error">
+            <strong>⚠️ HTTPS Required:</strong> Screen sharing only works on HTTPS or localhost. 
+            <strong>Solution:</strong> Upload this file to a free hosting service like:
+            <ul style="margin-top: 10px;">
+                <li><strong>GitHub Pages:</strong> Upload to GitHub → Settings → Pages</li>
+                <li><strong>Netlify:</strong> Drag & drop this file at netlify.com</li>
+                <li><strong>Vercel:</strong> Upload at vercel.com</li>
+            </ul>
+            <button id="continueAnyway" class="btn-test">Continue Anyway (Testing)</button>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="card">
+            <div class="grid">
+                <!-- Share Screen Section -->
+                <div>
+                    <h3 class="section-title">
+                        <span>📤</span>
+                        Share Your Screen
+                    </h3>
+                    
+                    <div id="shareSection">
+                        <button id="startSharingBtn" class="btn btn-primary">
+                            <span>🖥️</span>
+                            Start Sharing
+                        </button>
+                    </div>
+
+                    <div id="sharingActive" class="hidden">
+                        <div class="code-display">
+                            <div class="label">Room Code:</div>
+                            <div class="code">
+                                <span id="roomCodeDisplay"></span>
+                                <button id="copyCodeBtn" class="copy-btn" title="Copy room code">📋</button>
+                            </div>
+                        </div>
+                        
+                        <button id="stopSharingBtn" class="btn btn-danger">
+                            <span>⏹️</span>
+                            Stop Sharing
+                        </button>
+                    </div>
+                </div>
+
+                <!-- View Screen Section -->
+                <div>
+                    <h3 class="section-title">
+                        <span>👀</span>
+                        View Shared Screen
+                    </h3>
+                    
+                    <div id="joinSection">
+                        <input id="roomCodeInput" type="text" placeholder="ENTER CODE" maxlength="6" class="input">
+                        
+                        <button id="joinRoomBtn" class="btn btn-secondary">
+                            <span>🚪</span>
+                            Join Room
+                        </button>
+                    </div>
+
+                    <div id="viewingActive" class="hidden">
+                        <button id="stopViewingBtn" class="btn btn-danger">
+                            <span>⏹️</span>
+                            Stop Viewing
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Connection Status -->
+            <div id="connectionStatus" class="status hidden">
+                ✅ Connected - Screen sharing active
+            </div>
+        </div>
+
+        <!-- Permission Dialog -->
+        <div id="permissionDialog" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-icon">🖥️</div>
+                <h3>Share Your Screen</h3>
+                <p>This app needs permission to access your screen to share it with your brother.</p>
+                
+                <div class="steps">
+                    <strong>📋 What happens next:</strong>
+                    <ol>
+                        <li>Your browser will show a popup asking which screen to share</li>
+                        <li>Choose "Entire Screen", a specific window, or browser tab</li>
+                        <li><strong>Click "Share" (NOT "Cancel")</strong></li>
+                        <li>A room code will be generated for your brother</li>
+                    </ol>
+                </div>
+                
+                <div class="alert alert-info">
+                    <strong>Privacy Note:</strong> Only your brother will be able to see your screen using the private room code. 
+                    No data is stored on external servers.
+                </div>
+                
+                <div class="modal-buttons">
+                    <button id="cancelPermissionBtn" class="btn-modal btn-cancel">Cancel</button>
+                    <button id="allowAccessBtn" class="btn-modal btn-allow">Allow Access</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Display -->
+        <div id="localVideoContainer" class="video-container hidden">
+            <h4>Your Screen</h4>
+            <video id="localVideo" autoplay muted class="video"></video>
+        </div>
+
+        <div id="remoteVideoContainer" class="video-container hidden">
+            <h4>Shared Screen</h4>
+            <video id="remoteVideo" autoplay class="video"></video>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="card">
+            <h4>Activity Log</h4>
+            <div id="activityLog" class="activity-log"></div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="alert alert-info">
+            <h4><strong>How to use:</strong></h4>
+            <ol style="margin-left: 20px; margin-top: 10px;">
+                <li>Person sharing: Click "Start Sharing" and share the room code</li>
+                <li>Person viewing: Enter the room code and click "Join Room"</li>
+                <li>The connection will establish automatically via WebRTC</li>
+                <li>Both people need to have this page open in their browsers</li>
+            </ol>
+        </div>
+
+        <!-- Troubleshooting -->
+        <div class="alert alert-warning troubleshooting">
+            <h4><strong>Troubleshooting Screen Share Issues:</strong></h4>
+            <div style="margin-top: 10px;">
+                <strong>Permission Denied Error:</strong>
+                <ul>
+                    <li>Make sure to click "Share" (not "Cancel") in the browser popup</li>
+                    <li>Try refreshing the page and clicking "Start Sharing" again</li>
+                    <li>Check if your browser is blocking screen sharing permissions</li>
+                    <li>In Chrome: Click the camera icon in the address bar and allow screen sharing</li>
+                </ul>
+                
+                <strong>Browser Compatibility:</strong>
+                <ul>
+                    <li>Use Chrome, Firefox, Safari, or Edge (latest versions)</li>
+                    <li>Screen sharing requires HTTPS (secure connection)</li>
+                </ul>
+                
+                <strong>Still not working?</strong>
+                <ul>
+                    <li>Try opening this page in an incognito/private window</li>
+                    <li>Disable browser extensions temporarily</li>
+                    <li>Check your computer's privacy settings for screen recording</li>
+                </ul>
+                <button id="testPermissionBtn" class="btn-test">Test Screen Share Permission</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let isSharing = false;
+        let isViewing = false;
+        let isConnected = false;
+        let roomCode = '';
+        let generatedCode = '';
+        let peerConnection = null;
+        let localStream = null;
+        let signalingChannel = null;
+
+        // Ice servers configuration
+        const iceServers = [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' }
+        ];
+
+        // DOM elements
+        const elements = {
+            startSharingBtn: document.getElementById('startSharingBtn'),
+            stopSharingBtn: document.getElementById('stopSharingBtn'),
+            joinRoomBtn: document.getElementById('joinRoomBtn'),
+            stopViewingBtn: document.getElementById('stopViewingBtn'),
+            roomCodeInput: document.getElementById('roomCodeInput'),
+            roomCodeDisplay: document.getElementById('roomCodeDisplay'),
+            copyCodeBtn: document.getElementById('copyCodeBtn'),
+            permissionDialog: document.getElementById('permissionDialog'),
+            cancelPermissionBtn: document.getElementById('cancelPermissionBtn'),
+            allowAccessBtn: document.getElementById('allowAccessBtn'),
+            testPermissionBtn: document.getElementById('testPermissionBtn'),
+            shareSection: document.getElementById('shareSection'),
+            sharingActive: document.getElementById('sharingActive'),
+            joinSection: document.getElementById('joinSection'),
+            viewingActive: document.getElementById('viewingActive'),
+            connectionStatus: document.getElementById('connectionStatus'),
+            localVideo: document.getElementById('localVideo'),
+            remoteVideo: document.getElementById('remoteVideo'),
+            localVideoContainer: document.getElementById('localVideoContainer'),
+            remoteVideoContainer: document.getElementById('remoteVideoContainer'),
+            activityLog: document.getElementById('activityLog'),
+            httpsWarning: document.getElementById('httpsWarning'),
+            continueAnyway: document.getElementById('continueAnyway')
+        };
+
+        // Check HTTPS
+        function checkHTTPS() {
+            const isHTTPS = location.protocol === 'https:';
+            const isLocalhost = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+            
+            if (!isHTTPS && !isLocalhost) {
+                elements.httpsWarning.classList.remove('hidden');
+                return false;
+            } else {
+                elements.httpsWarning.classList.add('hidden');
+                return true;
+            }
+        }
+
+        // Utility functions
+        function addMessage(message, type = 'info') {
+            const messageDiv = document.createElement('div');
+            const time = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'log-error' : 
+                             type === 'success' ? 'log-success' : 'log-info';
+            
+            messageDiv.className = `log-entry ${className}`;
+            messageDiv.textContent = `${time}: ${message}`;
+            
+            elements.activityLog.appendChild(messageDiv);
+            elements.activityLog.scrollTop = elements.activityLog.scrollHeight;
+        }
+
+        function generateRoomCode() {
+            const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+            generatedCode = code;
+            roomCode = code;
+            elements.roomCodeDisplay.textContent = code;
+            return code;
+        }
+
+        function checkScreenShareSupport() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+                addMessage('Screen sharing is not supported in this browser. Try Chrome, Firefox, or Edge.', 'error');
+                return false;
+            }
+            return true;
+        }
+
+        function showPermissionDialog() {
+            if (checkScreenShareSupport()) {
+                elements.permissionDialog.classList.remove('hidden');
+            }
+        }
+
+        function hidePermissionDialog() {
+            elements.permissionDialog.classList.add('hidden');
+        }
+
+        function initializePeerConnection() {
+            const pc = new RTCPeerConnection({ iceServers });
+            
+            pc.onicecandidate = (event) => {
+                if (event.candidate && signalingChannel) {
+                    signalingChannel.postMessage(JSON.stringify({
+                        type: 'ice-candidate',
+                        candidate: event.candidate,
+                        room: roomCode
+                    }));
+                }
+            };
+
+            pc.ontrack = (event) => {
+                elements.remoteVideo.srcObject = event.streams[0];
+                isViewing = true;
+                updateUI();
+                addMessage('Screen sharing started!', 'success');
+            };
+
+            pc.onconnectionstatechange = () => {
+                addMessage(`Connection state: ${pc.connectionState}`, 'info');
+                if (pc.connectionState === 'connected') {
+                    isConnected = true;
+                    updateUI();
+                } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+                    isConnected = false;
+                    isViewing = false;
+                    updateUI();
+                }
+            };
+
+            return pc;
+        }
+
+        function initializeSignaling(code) {
+            const channel = new BroadcastChannel(`screen-share-${code}`);
+            
+            channel.onmessage = async (event) => {
+                const data = JSON.parse(event.data);
+                
+                if (!peerConnection) return;
+
+                switch (data.type) {
+                    case 'offer':
+                        await peerConnection.setRemoteDescription(data.offer);
+                        const answer = await peerConnection.createAnswer();
+                        await peerConnection.setLocalDescription(answer);
+                        channel.postMessage(JSON.stringify({
+                            type: 'answer',
+                            answer: answer,
+                            room: code
+                        }));
+                        addMessage('Received screen share offer', 'info');
+                        break;
+                        
+                    case 'answer':
+                        await peerConnection.setRemoteDescription(data.answer);
+                        addMessage('Screen share connection established', 'success');
+                        break;
+                        
+                    case 'ice-candidate':
+                        await peerConnection.addIceCandidate(data.candidate);
+                        break;
+                }
+            };
+            
+            return channel;
+        }
+
+        async function startSharing() {
+            hidePermissionDialog();
+            try {
+                const code = generateRoomCode();
+                addMessage(`Room created: ${code}`, 'success');
+                addMessage('Requesting screen access...', 'info');
+                
+                const stream = await navigator.mediaDevices.getDisplayMedia({
+                    video: { mediaSource: 'screen' },
+                    audio: true
+                });
+                
+                localStream = stream;
+                elements.localVideo.srcObject = stream;
+                
+                peerConnection = initializePeerConnection();
+                signalingChannel = initializeSignaling(code);
+                
+                stream.getTracks().forEach(track => {
+                    peerConnection.addTrack(track, stream);
+                });
+                
+                stream.getVideoTracks()[0].addEventListener('ended', () => {
+                    stopSharing();
+                });
+                
+                isSharing = true;
+                updateUI();
+                addMessage('Screen access granted! Share this room code with your brother!', 'success');
+                
+            } catch (error) {
+                if (error.name === 'NotAllowedError') {
+                    addMessage('❌ Permission denied. Click "Start Sharing" again and make sure to click "Share" in the browser popup (not Cancel).', 'error');
+                } else if (error.name === 'NotSupportedError') {
+                    addMessage('Screen sharing is not supported in this browser. Try Chrome, Firefox, or Edge.', 'error');
+                } else if (error.name === 'NotFoundError') {
+                    addMessage('No screen sharing source found. Please try again.', 'error');
+                } else if (error.name === 'AbortError') {
+                    addMessage('Screen sharing was cancelled. Click "Start Sharing" to try again.', 'error');
+                } else {
+                    addMessage('Failed to start screen sharing: ' + error.message, 'error');
+                }
+            }
+        }
+
+        async function joinRoom() {
+            const code = elements.roomCodeInput.value.trim();
+            if (!code) {
+                addMessage('Please enter a room code', 'error');
+                return;
+            }
+            
+            try {
+                roomCode = code;
+                addMessage(`Joining room: ${code}`, 'info');
+                
+                peerConnection = initializePeerConnection();
+                signalingChannel = initializeSignaling(code);
+                
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+                
+                signalingChannel.postMessage(JSON.stringify({
+                    type: 'offer',
+                    offer: offer,
+                    room: code
+                }));
+                
+                addMessage('Connecting to screen share...', 'info');
+                
+            } catch (error) {
+                addMessage('Failed to join room: ' + error.message, 'error');
+            }
+        }
+
+        function stopSharing() {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            if (peerConnection) {
+                peerConnection.close();
+            }
+            if (signalingChannel) {
+                signalingChannel.close();
+            }
+            
+            isSharing = false;
+            isConnected = false;
+            generatedCode = '';
+            updateUI();
+            addMessage('Screen sharing stopped', 'info');
+        }
+
+        function stopViewing() {
+            if (peerConnection) {
+                peerConnection.close();
+            }
+            if (signalingChannel) {
+                signalingChannel.close();
+            }
+            
+            isViewing = false;
+            isConnected = false;
+            updateUI();
+            addMessage('Stopped viewing screen share', 'info');
+        }
+
+        async function copyRoomCode() {
+            try {
+                await navigator.clipboard.writeText(generatedCode);
+                addMessage('Room code copied to clipboard!', 'success');
+                elements.copyCodeBtn.textContent = '✅';
+                setTimeout(() => {
+                    elements.copyCodeBtn.textContent = '📋';
+                }, 2000);
+            } catch (err) {
+                addMessage('Failed to copy room code', 'error');
+            }
+        }
+
+        async function testPermissions() {
+            try {
+                const stream = await navigator.mediaDevices.getDisplayMedia({
+                    video: { mediaSource: 'screen' },
+                    audio: false
+                });
+                
+                stream.getTracks().forEach(track => track.stop());
+                addMessage('✅ Screen sharing permission works! Try "Start Sharing" again.', 'success');
+            } catch (error) {
+                if (error.name === 'NotAllowedError') {
+                    addMessage('❌ Permission still denied. Check browser settings or try incognito mode.', 'error');
+                } else {
+                    addMessage('Permission test failed: ' + error.message, 'error');
+                }
+            }
+        }
+
+        function updateUI() {
+            // Share section
+            elements.shareSection.classList.toggle('hidden', isSharing);
+            elements.sharingActive.classList.toggle('hidden', !isSharing);
+            
+            // Join section
+            elements.joinSection.classList.toggle('hidden', isViewing);
+            elements.viewingActive.classList.toggle('hidden', !isViewing);
+            
+            // Connection status
+            elements.connectionStatus.classList.toggle('hidden', !isConnected);
+            
+            // Video containers
+            elements.localVideoContainer.classList.toggle('hidden', !isSharing);
+            elements.remoteVideoContainer.classList.toggle('hidden', !isViewing);
+        }
+
+        // Event listeners
+        elements.startSharingBtn.addEventListener('click', showPermissionDialog);
+        elements.allowAccessBtn.addEventListener('click', startSharing);
+        elements.cancelPermissionBtn.addEventListener('click', hidePermissionDialog);
+        elements.stopSharingBtn.addEventListener('click', stopSharing);
+        elements.joinRoomBtn.addEventListener('click', joinRoom);
+        elements.stopViewingBtn.addEventListener('click', stopViewing);
+        elements.copyCodeBtn.addEventListener('click', copyRoomCode);
+        elements.testPermissionBtn.addEventListener('click', testPermissions);
+        elements.continueAnyway.addEventListener('click', () => {
+            elements.httpsWarning.classList.add('hidden');
+            addMessage('Continuing without HTTPS - screen sharing may not work', 'error');
+        });
+
+        // Room code input formatting
+        elements.roomCodeInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.toUpperCase();
+        });
+
+        // Initialize
+        if (checkHTTPS()) {
+            addMessage('Screen sharing app loaded successfully', 'success');
+        } else {
+            addMessage('Screen sharing requires HTTPS. Please use a secure connection.', 'error');
+        }
+    </script>
+</body>
+</html>
